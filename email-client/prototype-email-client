@@ -1,0 +1,71 @@
+Applications ->  Configure Persistent Volume
+Check Icedove
+Personal Data
+GnuPG
+Gnome Keyring 
+Network Connections (dangerous)
+APT Packages (optional)
+Click Save
+Reboot
+
+Upon reboot choose to use persistance and adminstrative password enabled
+
+-----------------------
+Configure networking
+-----------
+
+create a script to use tor hidden service auth.
+
+---- begin script start-icedove.sh ----
+#!/bin/sh
+
+sudo echo "HidServAuth yourserver.onion <yourclient-cookie>" >> /etc/tor/torrc
+sudo systemctl restart tor.service
+/usr/local/bin/icedove
+
+------------- end script --------------------
+
+chmod +x start-icedove.sh
+
+Open Icedove using script
+
+enter name -- pref alias
+
+email address --- username@localhost.localdomain
+password --- ___________
+
+remember password X
+use secure passwords X
+
+Click manual config !
+
+Incoming server POP3
+server.onion
+Port 110
+STARTTLS
+NORMAL Password
+
+Outgoing server smtp
+server.onion
+port 465
+STARTTLS
+Normal Password
+
+Send and recieve an email and confirm security exception of
+self signed certificate.
+
+icedove settings -> enigmail -> enigmail key management
+generate
+use different passphase than your persistant volume
+**** Wait Several Minutes ****
+ 
+You are ready to use email with the private email server
+
+When you restart
+
+use start a terminal shell and type start-icedove.sh
+and hit enter - then enter the passwor a couple time.
+
+start the tor browser to see if tor is running properly before trying to
+start email. If it does not work, either check /etc/tor/torrc for duplicate 
+auth lines or reboot and try once more
