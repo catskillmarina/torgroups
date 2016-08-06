@@ -1,0 +1,189 @@
+wget http://cdimage.debian.org/debian-cd/8.5.0/amd64/iso-cd/debian-8.5.0-amd64-netinst.iso
+qemu-img create -f qcow2 mailserver.img 250G
+qemu-system-x86_64 -enable-kvm  -hda mailserver.img -cdrom debian-8.5.0-amd64-netinst.iso 
+
+---------
+Normal install of Debian
+
+Without desktop and print server
+add ssh server
+
+apt-get remove eject
+apt-get remove nfs-common
+apt-get remove rpcbind
+apt-get autoremove
+
+apt-get install sudo
+
+#configure sudo
+
+#configure bash.bashrc to likings
+
+apt-get remove exim4
+apt-get remove exim4-base
+apt-get remove exim4-config
+apt-get remove exim4-daemon-light
+apt-get autoremove
+apt-get install postfix postfix-pcre sasl2-bin dovecot-common resolvconf nmap
+postconf -e 'home_mailbox = Maildir/'
+sudo postconf -e 'smtpd_sasl_type = dovecot'
+sudo postconf -e 'smtpd_sasl_path = private/auth'
+sudo postconf -e 'smtpd_sasl_local_domain ='
+sudo postconf -e 'smtpd_sasl_security_options = noanonymous'
+sudo postconf -e 'broken_sasl_auth_clients = yes'
+sudo postconf -e 'smtpd_sasl_auth_enable = yes'
+sudo postconf -e 'smtpd_recipient_restrictions = permit_sasl_authenticated, reject'
+
+sudo postconf -e 'smtpd_tls_cert_file = /etc/ssl/certs/postfix-np.crt'
+sudo postconf -e 'smtpd_tls_key_file = /etc/ssl/private/postfix-np.key'
+                               
+#
+# add permit_mynetworks to smtpd_recipient_restrictions for testing without password
+#
+
+# uncomment postfix section in auth of /etc/dovecot/conf.d/10-master.conf
+
+sudo systemctl restart dovecot.service
+
+#remove permit_mynetworks
+# cpan -i MIME::Base64 # somewhere
+# Encode password like this and test
+#perl -MMIME::Base64 -e     'print encode_base64("foobar\0foobar\0letmein");'
+---
+220 server.example.com ESMTP Postfix
+EHLO client.example.com
+250-server.example.com
+250-PIPELINING
+250-SIZE 10240000
+250-ETRN
+250-AUTH DIGEST-MD5 PLAIN CRAM-MD5
+250 8BITMIME
+AUTH PLAIN dGVzdAB0ZXN0AHRlc3RwYXNz
+235 Authentication successful
+---
+
+# in main.cf
+---
+mynetworks =
+---
+
+# once testing is done
+
+sudo postconf -e 'smtpd_tls_auth_only = yes'
+systemctl restart postfix.service
+
+apt-get install tor
+
+### Add this to /etc/tor/torrc
+# This allows for 8 tor clients add more if needed create names with pwgen random usernames are important
+###---
+
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 25 127.0.0.1:25
+HiddenServicePort 110 127.0.0.1:110
+HiddenServicePort 995 127.0.0.1:995
+HiddenServicePort 465 127.0.0.1:465
+HiddenServiceAuthorizeClient stealth wa3ShaaR,Defo1pei,ahH3lie6,ool3Veih,Ewu8Thei,Faifai4i,Theigui6,uangu8Ri
+
+####---
+systemctl restart tor.service
+
+#Look in /var/lib/tor/hidden_service for your hostname
+
+systemctl stop tor.service
+#until you are ready to work with the service
+
+# Add this to /etc/dovecot/conf.d/10-ssl.conf in the correct place
+
+ssl_cert = </etc/ssl/certs/dovecot-np.crt
+ssl_key = </etc/ssl/private/dovecot-np.key
+
+# Uncomment this
+ssl_cipher_list = ALL:!LOW:!SSLv2:!EXP:!aNULL
+
+# change this
+
+ssl = yes
+
+# do this
+
+# cd
+# openssl genrsa -des3 -out dovecot-np.key 2048
+# openssl rsa -in dovecot-np.key -out dovecot-np.key.insecure
+# mv dovecot-np.key dovecot-np.key.secure
+# mv dovecot-np.key.insecure dovecot-np.key
+# openssl req -new -key dovecot-np.key -out dovecot.csr
+# openssl x509 -req -days 365 -in dovecot.csr -signkey dovecot-np.key -out dovecot-np.crt
+# cp dovecot-np.key /etc/ssl/private
+# cp dovecot-np.crt /etc/ssl/certs
+
+# systemctl restart dovecot.service
+
+# cd
+# openssl genrsa -des3 -out postfix-np.key 2048
+# openssl rsa -in postfix-np.key -out postfix-np.key.insecure
+# mv postfix-np.key postfix-np.key.secure
+# mv postfix-np.key.insecure postfix-np.key
+# openssl req -new -key postfix-np.key -out postfix.csr
+# openssl x509 -req -days 365 -in postfix.csr -signkey postfix-np.key -out postfix-np.crt
+# cp postfix-np.key /etc/ssl/private
+# cp postfix-np.crt /etc/ssl/certs
+
+##--- Add this line to /etc/postfix/master.cf
+
+ssmtp      inet  n       -       -       -       -       smtpd
+
+
+
+# systemctl restart postfix.service
+# systemctl restart tor.service
+
+# ---
+# edit /etc/dovecot/conf.d/10-auth.conf
+#---
+
+auth_mechanisms = plain login
+
+##
+
+systemctl restart postfix.service
+systemctl restart dovecot.service
+
+
+# Be sure to send a starter email to new users after adding them to initialize their mailboxes !!
+
+# Block all port 25 input and output on eth0 making this a tor only network lo only
+# AND prevent virt from making clearnet connections outbound. Only ssh inbound
+# THIS IS NOT WORKING RIGHT !!!!!
+
+apt-get install iptables-persistent
+
+# These should be changed to Drop
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -o eth0 -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp --dport 25 -j DROP
+iptables -A OUTPUT -o eth0 -p tcp --dport 25 -j DROP
+
+
+iptables-save > rules.v4
+--------
+
+# Fix problems client is having with delays from tor
+# Everyone is on 127.0.0.1 so can't error out
+
+sudo postconf -e 'smtpd_error_sleep_time = 1s'
+sudo postconf -e 'smtpd_soft_error_limit = 10000'
+sudo postconf -e 'smtpd_hard_error_limit = 20000'
+
+sudo systemctl restart postfix.service
+
+
+---
+Be sure mailserver virt is on an encrypted partition
+
