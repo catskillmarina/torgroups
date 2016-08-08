@@ -1,0 +1,4 @@
+The Mailserver needs to be split into a mailserver and a tor gateway server. 
+The tor gateway server serves as the router and torifies all connections from
+the mailserver preventing all and any leaks from the mailserver. (Thanks to 
+Andrea Sheppard for this correction)
