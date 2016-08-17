@@ -1,0 +1,84 @@
+be sure that virtualbox is installed
+
+download latest debian minimal ISO
+
+Getting Debian -> Small CD's, Flexible USB Sticks etc
+
+--> Network install from a minimal CD
+
+--> AMD64 (I suggest you use bittorrent to download it)
+
+Go into Virtualbox 
+
+Create a virt with 512m of ram, debian linux, 8G disk dynamically allocated.
+Click on Settings -> Network -> Adapter 2  -> attached to (Internal Network)
+name (tgemail) 
+
+Click advanced be sure promiscuous mode is Deny and Cable is connected.
+
+Virtualbox -> Settings -> Network -> Port Forwarding -> Guest 22, Host 2222
+
+Click Start
+
+Navigate to the Debian ISO you downloaded
+
+Click Start
+
+Debian Install -> Hit enter through most
+
+Use Eth0 for interface for install
+
+use tgemailgw for admin user
+
+Partitioning -> guided use entire disk
+
+Click through with defaults
+
+let installer format the system
+
+find a software mirror 
+
+install only ssh server and standard system utilities - remove others
+
+Once system is up and running
+
+apt-get install tor
+
+Start Up a WHONIX system`
+
+Create shared folder in virtualbox on the whonix system to enable copying - 
+ssh is not installed and is not easy to install on virtualbox gatways.
+
+copy /etc/network/interfaces.d/30_non-qubes-whonix (from whonix) to tgemail-gateway
+
+copy /etc/network/interfaces (from whonix) to tgemail-gateway
+
+copy /usr/share/tor/tor-service-defaults-torrc (from whonix) to /etc/tor/torrc on tgemail-gateway
+
+Comment out "SocksPort unix:/var/run/tor/socks WorldWritable"
+
+### Add this to /etc/tor/torrc
+# This allows for 8 tor clients add more if needed create names with pwgen random usernames are important
+###---
+
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 25 10.152.152.11:25
+HiddenServicePort 110 10.152.152.11:110
+HiddenServicePort 995 10.152.152.11:995
+HiddenServicePort 465 10.152.152.11:465
+HiddenServiceAuthorizeClient stealth wa3ShaaR,Defo1pei,ahH3lie6,ool3Veih,Ewu8Thei,Faifai4i,Theigui6,uangu8Ri
+
+####---
+systemctl restart tor.service
+
+#Look in /var/lib/tor/hidden_service for your hostname
+
+systemctl stop tor.service
+#until you are ready to work with the service
+
+
+systemctl restart tor.service 
+
+remove any shared folders
+
+File -> Export Appliance (OVF 1, Write Manifest File) 
