@@ -73,26 +73,6 @@ mynetworks =
 sudo postconf -e 'smtpd_tls_auth_only = yes'
 systemctl restart postfix.service
 
-apt-get install tor
-
-### Add this to /etc/tor/torrc
-# This allows for 8 tor clients add more if needed create names with pwgen random usernames are important
-###---
-
-HiddenServiceDir /var/lib/tor/hidden_service/
-HiddenServicePort 25 127.0.0.1:25
-HiddenServicePort 110 127.0.0.1:110
-HiddenServicePort 995 127.0.0.1:995
-HiddenServicePort 465 127.0.0.1:465
-HiddenServiceAuthorizeClient stealth wa3ShaaR,Defo1pei,ahH3lie6,ool3Veih,Ewu8Thei,Faifai4i,Theigui6,uangu8Ri
-
-####---
-systemctl restart tor.service
-
-#Look in /var/lib/tor/hidden_service for your hostname
-
-systemctl stop tor.service
-#until you are ready to work with the service
 
 # Add this to /etc/dovecot/conf.d/10-ssl.conf in the correct place
 
@@ -137,7 +117,6 @@ ssmtp      inet  n       -       -       -       -       smtpd
 
 
 # systemctl restart postfix.service
-# systemctl restart tor.service
 
 # ---
 # edit /etc/dovecot/conf.d/10-auth.conf
