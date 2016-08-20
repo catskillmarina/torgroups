@@ -57,6 +57,8 @@ copy /usr/share/tor/tor-service-defaults-torrc (from whonix) to /etc/tor/torrc o
 
 Comment out "SocksPort unix:/var/run/tor/socks WorldWritable"
 
+Change "DisableNetwork 1" to "DisableNetwork 0" in torrc
+
 ### Add this to /etc/tor/torrc
 # This allows for 8 tor clients add more if needed create names with pwgen random usernames are important
 ###---
