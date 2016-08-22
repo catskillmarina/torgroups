@@ -43,6 +43,9 @@ install only ssh server and standard system utilities - remove others
 Once system is up and running
 
 apt-get install tor
+apt-get remove exim4 exim4-base exim4-config exim4-daemon-light
+apt-get rpcbind
+apt-get autoremove
 
 Start Up a WHONIX system`
 
@@ -57,7 +60,7 @@ copy /usr/share/tor/tor-service-defaults-torrc (from whonix) to /etc/tor/torrc o
 
 Comment out "SocksPort unix:/var/run/tor/socks WorldWritable"
 
-Change "DisableNetwork 1" to "DisableNetwork 0" in torrc
+Change "DisableNetwork 1" to "DisableNetwork 0" in torrc on gateway
 
 ### Add this to /etc/tor/torrc
 # This allows for 8 tor clients add more if needed create names with pwgen random usernames are important

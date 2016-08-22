@@ -1,0 +1,24 @@
+set mailserver on internal network Whonix on virtualbox
+
+give whonix gateway appliance 192M of memory to keep it non-graphical
+
+# Add this to torrc
+
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 25 10.152.152.11:25
+HiddenServicePort 110 10.152.152.11:110
+HiddenServicePort 995 10.152.152.11:995
+HiddenServicePort 465 10.152.152.11:465
+HiddenServiceAuthorizeClient stealth wa3ShaaR,Defo1pei,ahH3lie6,ool3Veih,Ewu8Thei,Faifai4i,Theigui6,uangu8Ri
+
+####---
+systemctl restart tor.service
+
+#Look in /var/lib/tor/hidden_service for your hostname
+
+systemctl stop tor.service
+#until you are ready to work with the service
+
+
+systemctl restart tor.service
+
